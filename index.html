@@ -1,20 +1,85 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Confirmación de Reserva</title>
+<title>Reserva Privada</title>
 <style>
-body{margin:0;height:100vh;display:flex;justify-content:center;align-items:center;background:#ff4e50;font-family:Arial;color:white;text-align:center}
-.heart{font-size:100px;animation:beat 1s infinite}
-@keyframes beat{0%{transform:scale(1)}50%{transform:scale(1.2)}100%{transform:scale(1)}}
-button{margin-top:20px;padding:10px 20px;border:none;border-radius:20px;font-size:18px;cursor:pointer}
+body{
+  margin:0;
+  height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  background:linear-gradient(135deg,#1a1a1a,#400000);
+  font-family:Arial, sans-serif;
+  color:white;
+  text-align:center;
+  overflow:hidden;
+}
+.container{
+  animation:fadeIn 2s ease-in-out;
+}
+.heart{
+  font-size:90px;
+  animation:beat 1s infinite;
+}
+h1{
+  letter-spacing:2px;
+}
+button{
+  margin-top:25px;
+  padding:12px 30px;
+  font-size:18px;
+  border:none;
+  border-radius:30px;
+  cursor:pointer;
+  background:#ff0055;
+  color:white;
+  font-weight:bold;
+  transition:0.3s;
+}
+button:hover{
+  background:#ff4d88;
+  transform:scale(1.05);
+}
+@keyframes beat{
+  0%{transform:scale(1);}
+  50%{transform:scale(1.2);}
+  100%{transform:scale(1);}
+}
+@keyframes fadeIn{
+  from{opacity:0;}
+  to{opacity:1;}
+}
 </style>
 </head>
 <body>
-<div>
-<div class="heart">❤️</div>
-<h2>¿Aceptás la invitación?</h2>
-<button onclick="alert('Sabía que ibas a decir que sí 😏💘')">Aceptar</button>
+
+<div class="container">
+  <h1>Reserva Exclusiva 💋</h1>
+  <p>Habitación privada. Luces bajas.  
+  Velas encendidas.  
+  Y una sorpresa esperando...</p>
+  
+  <div class="heart">🔥❤️🔥</div>
+  
+  <h2>¿Aceptás la invitación?</h2>
+  
+  <button onclick="mostrarMensaje()">Aceptar</button>
 </div>
+
+<script>
+function mostrarMensaje(){
+  document.body.innerHTML = `
+    <div style="display:flex;justify-content:center;align-items:center;height:100vh;background:#000;color:white;text-align:center;font-family:Arial">
+      <div>
+        <h1 style="font-size:40px;">Te espero esta noche... 😏🔥</h1>
+        <p style="font-size:20px;">Código de acceso: SOLO VOS 💘</p>
+      </div>
+    </div>
+  `;
+}
+</script>
+
 </body>
 </html>
