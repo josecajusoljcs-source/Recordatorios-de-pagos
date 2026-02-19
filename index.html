@@ -10,24 +10,26 @@
         h1 { text-align: center; color: #007bff; }
         form { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 10px; margin-bottom: 20px; }
         input, button { padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
-        button { background: #28a745; color: white; cursor: pointer; border: none; }
+        button { background: #28a745; color: white; cursor: pointer; border: none; font-weight: bold; }
         button:hover { background: #218838; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th, td { padding: 12px; border-bottom: 1px solid #eee; text-align: left; }
         .status-ok { background: #d4edda; color: #155724; padding: 5px; border-radius: 4px; font-size: 0.8em; }
         .status-warning { background: #fff3cd; color: #856404; padding: 5px; border-radius: 4px; font-weight: bold; }
         .status-danger { background: #f8d7da; color: #721c24; padding: 5px; border-radius: 4px; font-weight: bold; }
+        .loading { text-align: center; color: #666; font-style: italic; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <h1>📅 Pagos Servicel</h1>
+    
     <form id="paymentForm">
-        <input type="text" id="desc" placeholder="Ej: Antel, Ute..." required>
+        <input type="text" id="desc" placeholder="Ej: Ute, Antel, Local..." required>
         <input type="number" id="monto" placeholder="Monto $" required>
         <input type="date" id="fecha" required>
-        <button type="submit">Agregar</button>
+        <button type="submit" id="submitBtn">Agregar</button>
     </form>
 
     <table id="paymentTable">
@@ -39,20 +41,26 @@
                 <th>Estado</th>
             </tr>
         </thead>
-        <tbody id="tableBody"></tbody>
+        <tbody id="tableBody">
+            <tr><td colspan="4" class="loading">Cargando datos desde la planilla...</td></tr>
+        </tbody>
     </table>
 </div>
 
 <script>
-    const WEB_APP_URL = "TU_URL_DE_GOOGLE_APP_SCRIPT";
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxuj1R3FPnjYwFjjJm2jSuHLV3R8_jpfyhqMfSG9lCWPfsswdjLC4K_IEEhVhCSodlV/exec";
     const form = document.getElementById('paymentForm');
     const tableBody = document.getElementById('tableBody');
+    const submitBtn = document.getElementById('submitBtn');
 
     async function loadPayments() {
-        tableBody.innerHTML = '<tr><td colspan="4">Cargando pagos...</td></tr>';
-        const response = await fetch(WEB_APP_URL);
-        const data = await response.json();
-        renderTable(data);
+        try {
+            const response = await fetch(WEB_APP_URL);
+            const payments = await response.json();
+            renderTable(payments);
+        } catch (e) {
+            tableBody.innerHTML = '<tr><td colspan="4">No hay pagos registrados o error de conexión.</td></tr>';
+        }
     }
 
     function renderTable(payments) {
@@ -60,7 +68,8 @@
         const hoy = new Date();
         hoy.setHours(0,0,0,0);
 
-        payments.forEach((p) => {
+        // Ordenar por fecha más próxima
+        payments.sort((a, b) => new Date(a[2]) - new Date(b[2])).forEach((p) => {
             const [desc, monto, fechaStr] = p;
             const fechaVenc = new Date(fechaStr);
             fechaVenc.setHours(24,0,0,0);
@@ -81,9 +90,9 @@
 
             tableBody.innerHTML += `
                 <tr>
-                    <td>${desc}</td>
+                    <td><strong>${desc}</strong></td>
                     <td>$${monto}</td>
-                    <td>${fechaStr.split('T')[0]}</td>
+                    <td>${new Date(fechaStr).toLocaleDateString('es-UY')}</td>
                     <td><span class="${statusClass}">${statusText}</span></td>
                 </tr>
             `;
@@ -92,23 +101,40 @@
 
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
+        
         const newPayment = {
             desc: document.getElementById('desc').value,
             monto: document.getElementById('monto').value,
             fecha: document.getElementById('fecha').value
         };
         
-        await fetch(WEB_APP_URL, {
-            method: 'POST',
-            mode: 'no-cors',
-            body: JSON.stringify(newPayment)
-        });
+        submitBtn.innerText = "Guardando...";
+        submitBtn.disabled = true;
 
-        form.reset();
-        setTimeout(loadPayments, 2000); // Espera un poco a que Google Sheets se actualice
+        try {
+            await fetch(WEB_APP_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                body: JSON.stringify(newPayment)
+            });
+
+            form.reset();
+            // Esperamos un segundo para que Google Sheets procese antes de recargar
+            setTimeout(() => {
+                submitBtn.innerText = "Agregar";
+                submitBtn.disabled = false;
+                loadPayments();
+            }, 1500);
+        } catch (err) {
+            alert("Error al guardar. Revisa la conexión.");
+            submitBtn.disabled = false;
+            submitBtn.innerText = "Agregar";
+        }
     });
 
+    // Carga inicial
     loadPayments();
 </script>
+
 </body>
 </html>
